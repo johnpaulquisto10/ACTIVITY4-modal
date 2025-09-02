@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Form Modal</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  
+  <div id="modal" class="modal">
+    <div class="modal-content" id="modalContent">
+      <h2>Enter Details</h2>
+      <form id="userForm">
+        <label for="name">Name:</label>
+        <input type="text" id="name" required>
+
+        <label for="age">Age:</label>
+        <input type="number" id="age" required>
+
+        <label for="gender">Gender:</label>
+        <select id="gender" required>
+          <option value="">-- Select --</option>
+          <option value="Male">Male</option>
+          <option value="Female">Female</option>
+          <option value="Other">Other</option>
+        </select>
+
+        
+        <div id="otherField" style="display:none;">
+          <label for="otherGender">Please Specify:</label>
+          <input type="text" id="otherGender">
+        </div>
+
+        <button type="submit">Submit</button>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    const modal = document.getElementById("modal");
+    const modalContent = document.getElementById("modalContent");
+    const nameInput = document.getElementById("name");
+    const ageInput = document.getElementById("age");
+    const genderInput = document.getElementById("gender");
+    const otherField = document.getElementById("otherField");
+    const otherGenderInput = document.getElementById("otherGender");
+    const userForm = document.getElementById("userForm");
+    const inputs = [nameInput, ageInput, genderInput, otherGenderInput];
+
+    
+    function openModal() {
+      modal.style.display = "flex";
+      nameInput.focus();
+    }
+
+    
+    function closeModal() {
+      modal.style.display = "none";
+    }
+
+
+    function clearAllFields() {
+      userForm.reset();
+      otherField.style.display = "none";
+    }
+
+   
+    genderInput.addEventListener("change", () => {
+      if (genderInput.value === "Other") {
+        otherField.style.display = "block";
+      } else {
+        otherField.style.display = "none";
+        otherGenderInput.value = "";
+      }
+    });
+
+    
+    userForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+
+      
+      if (genderInput.value === "Other" && otherGenderInput.value.trim() === "") {
+        modalContent.classList.add("shake");
+        setTimeout(() => modalContent.classList.remove("shake"), 500);
+        otherGenderInput.focus();
+        return;
+      }
+
+     
+      const userData = {
+        name: nameInput.value.trim(),
+        age: ageInput.value.trim(),
+        gender: genderInput.value === "Other" ? otherGenderInput.value.trim() : genderInput.value
+      };
+
+      
+      let users = JSON.parse(localStorage.getItem("users")) || [];
+      users.push(userData);
+      localStorage.setItem("users", JSON.stringify(users));
+
+      alert("Data Saved Locally!");
+      clearAllFields();
+      closeModal();
+    });
+
+    
+    document.addEventListener("keydown", (e) => {
+      
+      if (e.ctrlKey && e.altKey && e.key.toLowerCase() === "n") {
+        e.preventDefault();
+        openModal();
+      }
+
+      
+      if (e.altKey && e.key === "1") {
+        e.preventDefault();
+        clearAllFields();
+      }
+
+      
+      if (!e.ctrlKey && e.key === "Escape") {
+        e.preventDefault();
+        if (document.activeElement.tagName === "INPUT" || document.activeElement.tagName === "SELECT") {
+          document.activeElement.value = "";
+        } else {
+          closeModal();
+        }
+      }
+    });
+
+    
+    userForm.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault(); // prevent submit
+        let currentIndex = inputs.indexOf(document.activeElement);
+        
+        
+        if (document.activeElement === genderInput && genderInput.value !== "Other") {
+          userForm.requestSubmit();
+          return;
+        }
+
+        if (currentIndex > -1 && currentIndex < inputs.length - 1) {
+        
+          let nextIndex = currentIndex + 1;
+          while (nextIndex < inputs.length && inputs[nextIndex].offsetParent === null) {
+            nextIndex++;
+          }
+          if (nextIndex < inputs.length) {
+            inputs[nextIndex].focus();
+          } else {
+            userForm.requestSubmit();
+          }
+        } else if (currentIndex === inputs.length - 1) {
+          userForm.requestSubmit();
+        }
+      }
+    });
+  </script>
+</body>
+</html>
